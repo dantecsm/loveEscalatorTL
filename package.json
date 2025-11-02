@@ -2,5 +2,14 @@
   "name": "loveEscalatorTL",
   "version": "1.0.0",
   "main": "index.js",
-  "license": "MIT"
+  "license": "MIT",
+  "scripts": {
+    "hex": "node extra && node cn && node name",
+    "pk": "node pack",
+    "hdi": "node hdi",
+    "all": "npm run hex && npm run pk && npm run hdi"
+  },
+  "dependencies": {
+    "iconv-lite": "^0.7.0"
+  }
 }
