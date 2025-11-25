@@ -2,3 +2,6 @@ package-lock.json
 yarn.lock
 note.txt
 diffFile.js
+LOVE.EAR
+*.hdi
+ear_cn/
