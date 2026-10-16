@@ -139,8 +139,30 @@ function romCode2JP(hexArr, needLog = false) {
     return jp
 }
 
+// 各种异常 Unicode 空白字符归一化为全角空格，避免因隐形字符导致编码失败
+const SPACE_NORMALIZE_MAP = {
+    '\u0020': '　', // 半角空格
+    '\u00A0': '　', // 不换行空格
+    '\u2002': '　', // En Space
+    '\u2003': '　', // Em Space
+    '\u2004': '　', // Three-Per-Em Space
+    '\u2005': '　', // Four-Per-Em Space
+    '\u2006': '　', // Six-Per-Em Space
+    '\u2007': '　', // Figure Space
+    '\u2008': '　', // Punctuation Space
+    '\u2009': '　', // Thin Space
+    '\u200A': '　', // Hair Space
+    '\u202F': '　', // 窄不换行空格
+    '\u205F': '　', // 中数学空格
+    '\uFEFF': '',   // BOM / 零宽不换行空格，直接删除
+}
+function normalizeSpaces(str) {
+    return str.split('').map(c => SPACE_NORMALIZE_MAP[c] ?? c).join('')
+}
+
 // jp => ['AA', 'BB', ...]
 function jp2RomCode(jp) {
+    jp = normalizeSpaces(jp)
     jp = jp.replaceAll('贵志', '*').replaceAll('貴志', '*')
     jp = jp.replaceAll('黑崎', '※').replaceAll('黒崎', '※')
     jp = jp.replaceAll('＜８２＞', '↑')
@@ -151,7 +173,7 @@ function jp2RomCode(jp) {
     jp = jp.replaceAll('＜ＣＡ＞', '×')
     jp = jp.replaceAll('＜ＣＣ＞', '√')
     jp = jp.replaceAll('＜ＣＥ＞', '☁')
-    const chars = jp.split('')
+    const chars = Array.from(jp)
     const codes = chars.flatMap(c => {
         if (c === '*') {
             return ['92']
@@ -188,7 +210,8 @@ function jp2RomCode(jp) {
         }
 
         if (!REV_JIS_DICT[c]) {
-            throw `找不到 ${c} 对应的类JIS编码`
+            const codePoint = c.codePointAt(0).toString(16).toUpperCase().padStart(4, '0')
+            throw new Error(`找不到 "${c}" (U+${codePoint}) 对应的类JIS编码`)
         } else {
             let [A, B] = REV_JIS_DICT[c].match(/../g)
             A = num2Hex(hex2Num(A) - 0x20)
